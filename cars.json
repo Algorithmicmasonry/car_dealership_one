@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "name": "Toyota Camry XSE",
+    "images": [
+      "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop", 
+      "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&auto=format&fit=crop", 
+      "https://images.unsplash.com/photo-1547038577-da80abbc4f19?w=800&auto=format&fit=crop" 
+    ],
+    "overview": "Reliable midsize sedan with premium features",
+    "body": "Sedan",
+    "mileage": 45000,
+    "fuelType": "Petrol",
+    "year": 2013,
+    "transmission": "Automatic",
+    "driveType": "All-Wheel Drive (AWD/4WD)",
+    "condition": "Foreign Used",
+    "engineSize": 2.5,
+    "doors": 4,
+    "cylinders": 4,
+    "color": "Red",
+    "vin": "JT2BF22K3W0156789"
+  },
+  {
+    "id": 2,
+    "name": "Honda Accord EX-L",
+    "images": [
+      "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1605559424935-7382a1e0396c?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1605559424865-c3d1e8f9f932?w=800&auto=format&fit=crop"
+    ],
+    "overview": "Comfortable and efficient family sedan",
+    "body": "Sedan",
+    "mileage": 68000,
+    "fuelType": "Petrol",
+    "year": 2013,
+    "transmission": "Automatic",
+    "driveType": "Front-Wheel Drive",
+    "condition": "Foreign Used",
+    "engineSize": 2.4,
+    "doors": 4,
+    "cylinders": 4,
+    "color": "Silver",
+    "vin": "1HGCR2F3XDA012345"
+  },
+  {
+    "id": 3,
+    "name": "Subaru Outback 2.5i",
+    "images": [
+      "https://images.unsplash.com/photo-1619682817481-e994891cd1f5?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1616788494707-ec28f08fd05a?w=800&auto=format&fit=crop"
+    ],
+    "overview": "Versatile all-weather wagon",
+    "body": "Wagon",
+    "mileage": 52000,
+    "fuelType": "Petrol",
+    "year": 2013,
+    "transmission": "Automatic",
+    "driveType": "All-Wheel Drive (AWD/4WD)",
+    "condition": "Foreign Used",
+    "engineSize": 2.5,
+    "doors": 4,
+    "cylinders": 4,
+    "color": "Blue",
+    "vin": "4S4BRBLC1D3245678"
+  }
+]
