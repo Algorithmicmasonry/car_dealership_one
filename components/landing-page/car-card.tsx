@@ -1,15 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
 import { CarProps } from "@/types";
-import CustomButton from "./custom-button";
-import CarDetails from "./car-details";
-import { generateCarImageUrl } from "@/utils";
-import { Card } from "../ui/card";
-import { Button } from "../ui/button";
+import Image from "next/image";
+import { useState } from "react";
+
 import { ArrowUpRight, Bookmark } from "lucide-react";
 import Link from "next/link";
+import { Button } from "../ui/button";
 
 interface CarCardProps {
   car: CarProps;

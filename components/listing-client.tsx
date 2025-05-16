@@ -326,11 +326,11 @@ const ListingDetailsPage = ({ car }: ListingDetailsPageProps) => {
 
                 <Link
                   href={`https://wa.me/${phoneNumberWithoutFormatting}?text=${encodeURIComponent(
-                    `Hello, I'm interested in making an offer for the ${
+                    `Hello, I'm interested in making an offer for the car of year ${
                       car.year
-                    } ${car.name} ${
+                    }. The ${car.name} ${
                       car.manufacturer
-                    } priced at ${formatCurrency(
+                    } is priced at ${formatCurrency(
                       String(car.price)
                     )}. My offer price is: `
                   )}`}
