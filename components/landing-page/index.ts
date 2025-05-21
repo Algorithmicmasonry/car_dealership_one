@@ -12,6 +12,9 @@ import OtherAvailableCars from "./other-available-cars";
 import WhoAreWe from "./who-are-we";
 import ProsAndCons from "./pros-and-cons";
 import ContactUs from "./contact-us";
+import ScrollToTopButton from "./scroll-to-top-button";
+import CallFixedButton from "./call-fixed-button";
+import ChatOnWhatsappFixed from "./chat-on-whatsapp-fixed";
 
 
-export {Hero, CustomButton, Navbar, Footer, SearchBar, CustomFilter, SearchManufacturer, CarCard,Brands, WhyChooseUs, OtherAvailableCars,WhoAreWe, ProsAndCons, ContactUs}
+export {Hero, CustomButton, Navbar, Footer, SearchBar, CustomFilter, SearchManufacturer, CarCard,Brands, WhyChooseUs, OtherAvailableCars,WhoAreWe, ProsAndCons, ContactUs, ScrollToTopButton, CallFixedButton, ChatOnWhatsappFixed}

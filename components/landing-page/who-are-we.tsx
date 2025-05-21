@@ -6,7 +6,7 @@ import React from "react";
 
 const WhoAreWe = () => {
   return (
-    <section className="mt-[30px] max-w-[1440px] padding-x padding-y flex flex-col items-center justify-center">
+    <section id="who-are-we" className="mt-[30px] max-w-[1440px] padding-x padding-y flex flex-col items-center justify-center">
       <h1 className="relative inline-block text-center font-extrabold 2xl:text-[50px] sm:text-[64px] text-[50px] text-primary-blue py-[50px]">
         Who Are We?
         <Image

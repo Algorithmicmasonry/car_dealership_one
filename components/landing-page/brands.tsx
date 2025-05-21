@@ -96,7 +96,7 @@ const Brands = () => {
   };
 
   return (
-    <section className="w-screen h-full rounded-xl md:rounded-2xl max-w-[1440px] mx-auto bg-primary-blue py-6 px-8 mt-[80px]">
+    <section id="brands" className="w-screen h-full rounded-xl md:rounded-2xl max-w-[1440px] mx-auto bg-primary-blue py-6 px-8 mt-[80px]">
       <div className="px-[20px]">
         <h1 className="pt-[70px] font-bold text-white text-3xl">
           Cars Available For Sale

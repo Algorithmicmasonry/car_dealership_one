@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Poppins } from "next/font/google";
-import { Footer, Navbar } from "@/components/landing-page";
+import { ContactUs, Footer, Navbar } from "@/components/landing-page";
 import { Toaster } from "@/components/ui/toaster";
 
 const poppins = Poppins({
@@ -28,6 +28,7 @@ export default function RootLayout({
         <main className="flex min-h-screen flex-col bg-background text-foreground">
           <Navbar />
           {children}
+          <ContactUs />
           <Footer />
           <Toaster />
         </main>

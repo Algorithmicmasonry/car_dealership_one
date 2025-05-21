@@ -26,7 +26,7 @@ const ContactUs: React.FC = () => {
   };
 
   return (
-    <section className="bg-gray-100 py-16 px-4 mt-[40px]">
+    <section id="contact-us" className="bg-gray-100 py-16 px-4 mt-[40px]">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl lg:text-5xl font-bold text-primary-blue mb-2">
           Get In Touch

@@ -1,18 +1,21 @@
 import {
   Brands,
+  CallFixedButton,
   CarCard,
+  ChatOnWhatsappFixed,
   ContactUs,
   CustomFilter,
   Hero,
   OtherAvailableCars,
   ProsAndCons,
+  ScrollToTopButton,
   SearchBar,
   WhoAreWe,
   WhyChooseUs,
 } from "@/components/landing-page";
 import { fuels, yearsOfProduction } from "@/constants";
 import { fetchCars } from "@/server actions/actions";
-
+import { ArrowUp } from "lucide-react";
 
 // Tell Next.js this is a dynamic page
 export const dynamic = "force-dynamic";
@@ -31,7 +34,7 @@ export default async function Home({
   const isDataEmpty = !Array.isArray(allCars) || allCars.length < 1 || !allCars;
 
   return (
-    <main className="overflow-hidden">
+    <main className="overflow-hidden relative">
       <Hero />
       <Brands />
       {/* catalogue section */}
@@ -73,9 +76,13 @@ export default async function Home({
       </div>
 
       <WhoAreWe />
-      <WhyChooseUs/>
-      <ProsAndCons/>
-      <ContactUs/>
+      <WhyChooseUs />
+      <ProsAndCons />
+     
+      {/* fixed elements */}
+      <ScrollToTopButton/>
+      <CallFixedButton/>
+      <ChatOnWhatsappFixed/>
     </main>
   );
 }

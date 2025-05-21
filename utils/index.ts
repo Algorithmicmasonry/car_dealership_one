@@ -1,4 +1,16 @@
-import { CarProps} from "@/types";
+export const navItems = [{
+  name: "Cars For Sale",
+  url: "#brands"
+}, {
+  name: "About Us",
+  url: "#discover"
+}, {
+  name: "Contact Us",
+  url: "#contact-us"
+},
+{name: "Who Are We", url: "#who-are-we"}
+]
+
 
 
 
