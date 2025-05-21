@@ -17,7 +17,11 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Upload, X } from "lucide-react";
 import { formatCurrency } from "@/utils";
-import { toast } from "sonner"; // Assuming you use a toast library like sonner
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { manufacturers } from "@/constants";
+import { vendored } from "next/dist/server/future/route-modules/pages/module.compiled";
+// Assuming you use a toast library like sonner
 
 // Define the car interface based on the schema
 interface CarFormData {
@@ -45,7 +49,10 @@ interface CarFormData {
 async function uploadToCloudinary(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+  formData.append(
+    "upload_preset",
+    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+  );
 
   const res = await fetch(
     `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -69,7 +76,7 @@ async function uploadToCloudinary(file: File): Promise<string> {
  */
 async function uploadImages(files: File[]): Promise<string[]> {
   try {
-    const uploadPromises = files.map(file => uploadToCloudinary(file));
+    const uploadPromises = files.map((file) => uploadToCloudinary(file));
     const imageUrls = await Promise.all(uploadPromises);
     return imageUrls;
   } catch (error) {
@@ -167,59 +174,89 @@ export default function CarForm() {
     fileInputRef.current?.click();
   };
 
+  const { toast } = useToast();
+  const router = useRouter();
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       // Validate form
-      if (!formData.name || !formData.manufacturer || formData.images.length === 0) {
-        toast.error("Please fill in all required fields and upload at least one image");
+      if (
+        !formData.name ||
+        !formData.manufacturer ||
+        formData.images.length === 0
+      ) {
+        toast({
+          title: "Error",
+          description:
+            "Please fill in all required fields and upload at least one image",
+          variant: "destructive",
+        });
         setIsLoading(false);
         return;
       }
 
       // First upload images to Cloudinary
-      toast.info("Uploading images...");
+      toast({ title: "Uploading images..." });
       const imageUrls = await uploadImages(formData.images);
-      
+
       // Create FormData with all the car details
       const submitFormData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (key !== 'images') { // Skip the images array of Files
-          submitFormData.append(key, value);
+        if (key !== "images") {
+          // Skip the images array of Files
+          submitFormData.append(key, String(value)); // Ensure values are converted to strings
         }
       });
-      
+
       // Add the Cloudinary image URLs as JSON string
-      submitFormData.append('images', JSON.stringify(imageUrls));
-      
+      submitFormData.append("images", JSON.stringify(imageUrls));
+
       // Submit to your backend API
-      toast.info("Creating car listing...");
-      const response = await fetch('/api/cars', {
-        method: 'POST',
+      toast({ title: "Creating Car listing" });
+      const response = await fetch("/api/cars", {
+        method: "POST",
         body: submitFormData,
       });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        toast.success("Car listing created successfully!");
-        // Reset form or redirect
-        // window.location.href = "/your-listings";
-      } else {
-        toast.error(result.message || "Failed to create car listing");
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Server error: ${response.status}`
+        );
       }
-    } catch (error: any) {
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({ title: "Car listing created successfully!" });
+
+      } else {
+        throw new Error(result.message || "Failed to create car listing");
+      }
+    } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error(error.message || "An error occurred while creating the listing");
+      toast({
+        title: "Error",
+        variant: "destructive",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+      });
     } finally {
       setIsLoading(false);
+      
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto p-6 mt-4">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-8 max-w-4xl mx-auto p-6 mt-4"
+    >
       <div className="text-2xl font-bold">Add New Car Listing</div>
 
       {/* Basic Information */}
@@ -238,17 +275,26 @@ export default function CarForm() {
               required
             />
           </div>
-
+          
           <div className="space-y-2">
             <Label htmlFor="manufacturer">Manufacturer *</Label>
-            <Input
-              id="manufacturer"
-              name="manufacturer"
+            <Select
               value={formData.manufacturer}
-              onChange={handleInputChange}
-              placeholder="e.g. Toyota"
-              required
-            />
+              onValueChange={(value) =>
+                handleSelectChange("manufacturer", value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select manufacturer" />
+              </SelectTrigger>
+              <SelectContent>
+                {manufacturers.map((maker) => (
+                  <SelectItem key={maker} value={maker}>
+                    {maker}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -465,10 +511,18 @@ export default function CarForm() {
                 <SelectValue placeholder="Select drive type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="fwd">FWD (Front-Wheel Drive)</SelectItem>
-                <SelectItem value="rwd">RWD (Rear-Wheel Drive)</SelectItem>
-                <SelectItem value="awd">AWD (All-Wheel Drive)</SelectItem>
-                <SelectItem value="4wd">4WD (Four-Wheel Drive)</SelectItem>
+                <SelectItem value="fwd(Front-wheel-drive)">
+                  FWD (Front-Wheel Drive)
+                </SelectItem>
+                <SelectItem value="rwd(Rear-wheel-drive)">
+                  RWD (Rear-Wheel Drive)
+                </SelectItem>
+                <SelectItem value="awd(All-wheel-drive">
+                  AWD (All-Wheel Drive)
+                </SelectItem>
+                <SelectItem value="4wd(Four-wheel-drive)">
+                  4WD (Four-Wheel Drive)
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -524,7 +578,12 @@ export default function CarForm() {
 
       {/* Submit Button */}
       <div className="flex justify-end">
-        <Button type="submit" size="lg" className="border-2 border-blue-700" disabled={isLoading}>
+        <Button
+          type="submit"
+          size="lg"
+          className="border-2 border-blue-700"
+          disabled={isLoading}
+        >
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           {isLoading ? "Uploading..." : "Submit Listing"}
         </Button>

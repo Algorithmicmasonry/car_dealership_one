@@ -10,25 +10,25 @@ import { revalidatePath } from 'next/cache';
 
 export async function fetchCars(filters: {
   manufacturer?: string;
-  model?: string;
+  priceRange?: string;
   fuel?: string;
   year?: string;
   body?: string;
-  minPrice?: string;
-  maxPrice?: string;
 }): Promise<CarProps[]> {
   try {
     await connectToDB();
 
     const query: FilterQuery<typeof Car> = {};
 
-    if (filters.manufacturer) {
-      query.manufacturer = { $regex: filters.manufacturer, $options: 'i' };
-    }
+  if (filters.manufacturer) {
+ query.manufacturer = {
+  $regex: filters.manufacturer.split(/[\s-]/).join(".*"),
+  $options: "i",
+};
 
-    if (filters.model) {
-      query.name = { $regex: filters.model, $options: 'i' };
-    }
+  };
+
+
 
     if (filters.fuel) {
       query.fuelType = filters.fuel;
@@ -42,16 +42,22 @@ export async function fetchCars(filters: {
       query.body = filters.body;
     }
 
-    if (filters.minPrice || filters.maxPrice) {
-      query.price = {};
-      if (filters.minPrice) query.price.$gte = parseInt(filters.minPrice);
-      if (filters.maxPrice) query.price.$lte = parseInt(filters.maxPrice);
+    if (filters.priceRange) {
+      const range = filters.priceRange;
+
+      if (range.includes("-")) {
+        const [min, max] = range.split("-").map(Number);
+        query.price = { $gte: min * 1_000_000, $lte: max * 1_000_000 };
+      } else if (range.includes("+")) {
+        const min = parseInt(range.replace("+", ""));
+        query.price = { $gte: min * 1_000_000 };
+      }
     }
 
- const cars = await Car.find(query).lean<CarLean[]>();
- 
+    const cars = await Car.find(query).lean<CarLean[]>();
+
     return cars.map(car => ({
-      _id: car._id.toString(), // Convert ObjectId to string
+      _id: car._id.toString(),
       name: car.name,
       overview: car.overview,
       images: car.images,
@@ -67,10 +73,10 @@ export async function fetchCars(filters: {
       doors: car.doors,
       price: car.price,
       cylinders: car.cylinders,
-      color: car.color
+      color: car.color,
     }));
   } catch (error) {
-    console.error('Error fetching cars:', error);
+    console.error("Error fetching cars:", error);
     return [];
   }
 }
@@ -106,6 +112,37 @@ export async function fetchCarById(_id: string): Promise<CarProps | null> {
   } catch (error) {
     console.error('Error fetching car:', error);
     return null;
+  }
+}
+
+export async function fetchAllCars(): Promise<CarProps[]> {
+  try {
+    await connectToDB();
+
+    const cars = await Car.find({}).lean<CarLean[]>();
+
+    return cars.map(car => ({
+      _id: car._id.toString(),
+      name: car.name,
+      overview: car.overview,
+      images: car.images,
+      body: car.body,
+      mileage: car.mileage,
+      fuelType: car.fuelType,
+      manufacturer: car.manufacturer,
+      transmission: car.transmission,
+      year: car.year,
+      driveType: car.driveType,
+      condition: car.condition,
+      engineSize: car.engineSize,
+      doors: car.doors,
+      price: car.price,
+      cylinders: car.cylinders,
+      color: car.color
+    }));
+  } catch (error) {
+    console.error('Error fetching all cars:', error);
+    return [];
   }
 }
 

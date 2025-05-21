@@ -1,5 +1,56 @@
 export const appName="carhub"
 
+export const sellingPoints = ["Certified quality and inspection guarantee", "Transparent Pricing with No Hidden Fees", "24/7 Customer Support Team Available", "Easy-to-use website to compare vehicles"]
+
+export const brands = [
+  { name: "Mercedes-Benz", image: "/mercedes log.webp" },
+  {
+    name: "Lexus",
+    image: "/lexus logo.webp",
+  },
+  {
+    name: "Toyota",
+    image: "/Toyota logo.webp",
+  },
+
+  {
+    name: "Rolls-Royce",
+    image: "/Roll royce lgog.webp",
+  },
+  {
+    name: "Range-Rover",
+    image: "/land rover logo.webp",
+  },
+  {
+    name: "Bentley",
+    image: "/bentley logo.webp",
+  },
+  {
+    name: "Ford",
+    image: "/ford logo.webp",
+  },
+  {
+    name: "BMW",
+    image: "/bmw logo.webp",
+  },
+  {
+    name: "GAC",
+    image: "/GAC logo.webp",
+  },
+  {
+    name: "Innoson",
+    image: "/innoson logo.webp",
+  },
+  {
+    name: "NORD",
+    image: "/nord logo.webp",
+  },
+  {
+    name: "Peugeot",
+    image: "/peugeot logo.webp",
+  },
+];
+
 export const manufacturers = [
   "Acura",
   "Alfa Romeo",
@@ -42,10 +93,40 @@ export const manufacturers = [
   "Toyota",
   "Volkswagen",
   "Volvo",
+  "GAC",
+  "Innoson",
+  "Nord",
+  "Peugeot",
 ];
 
 export const yearsOfProduction = [
   { title: "Year", value: "" },
+  
+  { title: "1990", value: "1990" },
+  { title: "1991", value: "1991" },
+  { title: "1992", value: "1992" },
+  { title: "1993", value: "1993" },
+  { title: "1994", value: "1994" },
+  { title: "1995", value: "1995" },
+  { title: "1996", value: "1996" },
+  { title: "1997", value: "1997" },
+  { title: "1998", value: "1998" },
+  { title: "1999", value: "1999" },
+  { title: "2000", value: "2000" },
+  { title: "2001", value: "2001" },
+  { title: "2002", value: "2002" },
+  { title: "2003", value: "2003" },
+  { title: "2004", value: "2004" },
+  { title: "2005", value: "2005" },
+  { title: "2006", value: "2006" },
+  { title: "2007", value: "2007" },
+  { title: "2008", value: "2008" },
+  { title: "2009", value: "2009" },
+  { title: "2010", value: "2010" },
+  { title: "2011", value: "2011" },
+  { title: "2012", value: "2012" },
+  { title: "2013", value: "2013" },
+  { title: "2014", value: "2014" },
   { title: "2015", value: "2015" },
   { title: "2016", value: "2016" },
   { title: "2017", value: "2017" },
@@ -55,12 +136,14 @@ export const yearsOfProduction = [
   { title: "2021", value: "2021" },
   { title: "2022", value: "2022" },
   { title: "2023", value: "2023" },
+  {title: "2024", value: "2024"},
+  {title: "2025", value: "2025"}
 ];
 
 export const fuels = [
   {
-    title: "Fuel",
-    value: "",
+    title: "Petrol",
+    value: "Petrol",
   },
   {
     title: "Gas",
@@ -71,6 +154,19 @@ export const fuels = [
     value: "Electricity",
   },
 ];
+
+// price ranges array
+  export const priceRanges = [
+    { label: "Below ₦1M", value: "0-1" },
+    { label: "₦1M - ₦5M", value: "1-5" },
+    { label: "₦5M - ₦10M", value: "5-10" },
+    { label: "₦10M - ₦20M", value: "10-20" },
+    { label: "₦20M - ₦50M", value: "20-50" },
+    { label: "₦50M - ₦100M", value: "50-100" },
+    { label: "₦100M - ₦200M", value: "100-200" },
+    { label: "₦200M - ₦500M", value: "200-500" },
+    { label: "Above ₦500M", value: "500+" },
+  ];
 
 export const footerLinks = [
   {
