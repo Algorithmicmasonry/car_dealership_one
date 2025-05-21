@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import CustomButton from "./custom-button";
 import { navItems } from "@/utils";
+import { appName } from "@/constants";
 
 const Navbar = () => {
   return (
@@ -27,12 +28,13 @@ const Navbar = () => {
             </Link>
           ))}
         </div>
-
-        <CustomButton
-          title="Sign In"
-          btnType="button"
-          containerStyles="text-primary-blue rounded-full bg-white min-w-[130px]"
-        />
+        <Link href="/signin">
+          <CustomButton
+            title="Sign In"
+            btnType="button"
+            containerStyles="text-primary-blue rounded-full bg-white min-w-[130px] border-2 border-primary-blue hover:bg-primary-blue hover:text-white"
+          />
+        </Link>
       </nav>
     </header>
   );
