@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://car-dealership-one-seven.vercel.app"),
 
   openGraph: {
-    title: "Find the Best Premium Cars Online",
+    title: "Durie Autos. Find the Best Premium Cars Online",
     description:
       "Discover high quality reliable new and foreign used vehicles at great prices",
     url: "https://car-dealership-one-seven.vercel.app",
