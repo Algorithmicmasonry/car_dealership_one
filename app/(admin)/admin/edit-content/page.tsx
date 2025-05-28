@@ -1,5 +1,6 @@
 import EditContentPageClient from '@/components/admin/edit-content-page'
 import React from 'react'
+export const dynamic = 'force-dynamic'
 
 const EditContentPage = async () => {
  const res =  await fetch('http:localhost:3000/api/cms')

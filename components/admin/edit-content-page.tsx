@@ -13,7 +13,7 @@ import Link from "next/link"
 
 // Define plain object types for React state (without Mongoose methods)
 
-export const dynamic = 'force-dynamic'
+
 interface IBrand {
   name: string
   image: string
