@@ -73,7 +73,7 @@ const CarCard = ({ car }: CarCardProps) => {
         <div className="flex items-center justify-between mt-2">
           <p className="text-xl font-bold">{formatNaira(price)}</p>
           <Link href={`/listing/${_id}`}>
-            <Button className="text-white hover:bg-transparent p-0 flex items-cente gap-1">
+            <Button className="text-white hover:bg-transparent p-2 flex items-center gap-1">
               View Details
               <ArrowUpRight className="w-[16px] h-[16px]" />
             </Button>

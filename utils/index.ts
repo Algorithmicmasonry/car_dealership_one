@@ -30,5 +30,5 @@ export const formatCurrency = (value: string) => {
 };
 
 
-export const phoneNumber = "+2347048268704"
-export const phoneNumberWithoutFormatting="2347048268704"
+export const phoneNumber = "+2349130902153"
+export const phoneNumberWithoutFormatting="2349130902153"

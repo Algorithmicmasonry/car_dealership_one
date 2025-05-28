@@ -1,48 +1,46 @@
+import { appName } from "@/constants";
 import type { Metadata } from "next";
 import "./globals.css";
-import { ContactUs, Footer, Navbar } from "@/components/landing-page";
-import { Toaster } from "@/components/ui/toaster";
-import { appName } from "@/constants";
 
 import { Rethink_Sans } from "next/font/google";
 
-const rethinkSans = Rethink_Sans({ 
+const rethinkSans = Rethink_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"], // Specify weights you need
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Car Hub",
+  title: appName,
   description:
-    "Discover high quality reliable new and foreign used vehiles at great prices",
+    "Discover high quality reliable new and foreign used vehicles at great prices",
+  metadataBase: new URL("https://car-dealership-one-seven.vercel.app"),
 
-  // opengraph meta data
   openGraph: {
-    title: "Find the Best Premium cars online",
+    title: "Find the Best Premium Cars Online",
     description:
-      "Discover high quality reliable new and foreign used vehiles at great prices",
+      "Discover high quality reliable new and foreign used vehicles at great prices",
     url: "https://car-dealership-one-seven.vercel.app",
-    siteName: "Carhub.com",
+    siteName: appName,
     locale: "en_US",
     type: "website",
     images: [
       {
-        url: "/car dealership.webp", // Note: URL has spaces which might cause issues
+        url: "/car-dealership.webp",
         width: 1200,
         height: 630,
-        alt: "Site preview image",
+        alt: "Durie Autos vehicle showcase",
       },
     ],
   },
 
-  // Twitter specific
   twitter: {
-    card: "summary_large_image", // Fix: Use standard Twitter card type
-    title: 'Find the Best Premium cars online',
-    description: 'At carhub.com we provide you with premium cars that are friendly to your pockey',
-    creator: '@y',
-    images: ['https://car-dealership-one-seven.vercel.app/car dealership.webp'], // URL has spaces
+    card: "summary_large_image",
+    title: "Find the Best Premium Cars Online",
+    description:
+      "Discover high quality reliable new and foreign used vehicles at great prices",
+    creator: "@yourtwitterhandle",
+    images: ["https://car-dealership-one-seven.vercel.app/car-dealership.webp"],
   },
 };
 
@@ -54,13 +52,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${rethinkSans.className} antialiased relative`}>
-        <main className="flex min-h-screen flex-col bg-background text-foreground">
-          <Navbar />
-          {children}
-          <ContactUs />
-          <Footer />
-          <Toaster />
-        </main>
+        {children}
       </body>
     </html>
   );

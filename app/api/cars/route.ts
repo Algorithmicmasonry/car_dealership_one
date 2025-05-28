@@ -1,7 +1,7 @@
 // api/cars/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDB } from "@/db/connectToDB";
-import Car from "@/db/schema";
+import{ Car} from "@/db/schema";
 import { carSchema } from "@/types"; 
 
 

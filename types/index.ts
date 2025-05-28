@@ -79,4 +79,29 @@ export  const carSchema = z.object({
     
   }
 
+  // Define your types
+type CarStatus = "available" | "sold" | "pending";
  
+type Car = {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  status: string;
+};
+
+interface RecentCar {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  status: string;
+}
+
+export interface DashboardDataTypes {
+  totalCars: number;
+  totalValue: number;
+  recentCars: Car[];
+};

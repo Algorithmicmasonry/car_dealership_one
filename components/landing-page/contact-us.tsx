@@ -2,8 +2,14 @@
 import { phoneNumberWithoutFormatting } from "@/utils";
 import Link from "next/link";
 import React, { useState } from "react";
+import type { GetInTouch } from "@/types/content"
 
-const ContactUs: React.FC = () => {
+interface ContactUsProps {
+  getInTouch: GetInTouch
+}
+
+// Fix: Add the ContactUsProps generic type parameter
+const ContactUs: React.FC<ContactUsProps> = ({ getInTouch }) => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -32,8 +38,7 @@ const ContactUs: React.FC = () => {
           Get In Touch
         </h2>
         <p className="text-gray-600 mb-8 pb-4">
-          Streamline your processes and empower your team with our products.
-          Effortlessly manage employee data, and more.
+          Reach out to us to purchase your dream ride today.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

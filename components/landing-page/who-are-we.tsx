@@ -3,12 +3,17 @@ import { ArrowUpRight, Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import type { WhoAreWe as WhoAreWeType } from "@/types/content"
 
-const WhoAreWe = () => {
+interface WhoAreWeProps {
+  whoAreWe: WhoAreWeType
+}
+
+const WhoAreWe = ({ whoAreWe }: WhoAreWeProps) => {
   return (
     <section id="who-are-we" className="mt-[30px] max-w-[1440px] padding-x padding-y flex flex-col items-center justify-center">
       <h1 className="relative inline-block text-center font-extrabold 2xl:text-[50px] sm:text-[64px] text-[50px] text-primary-blue py-[50px]">
-        Who Are We?
+        {whoAreWe.heading}
         <Image
           src="/Line-6.png"
           alt="scribbled underline"
@@ -31,8 +36,7 @@ const WhoAreWe = () => {
         <div className="w-full md:w-1/2 bg-blue-100 p-4 md:p-6 max-w-4xl min-h-screen rounded-b-xl md:rounded-b-none md:rounded-r-xl flex md:items-center justify-start ">
           <div className="pl-[16px]">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-              Welcome to {appName}.com - Your Trusted Source For High Quality
-              Vehicles
+             {whoAreWe.subtitle}
             </h1>
 
             <div className="mb-8">
@@ -45,7 +49,7 @@ const WhoAreWe = () => {
             </div>
 
             <ul className="space-y-4 mb-8">
-              {sellingPoints.map((point, index) => (
+              {whoAreWe.listOfBenefits.map((point, index) => (
                 <li key={index} className="flex items-start justify-start">
                   <Check className="h-6 w-6 text-green-600 mr-2 flex-shrink-0" />
                   <span className="text-gray-800">{point}</span>

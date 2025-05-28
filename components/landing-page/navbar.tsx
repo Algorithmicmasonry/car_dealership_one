@@ -6,14 +6,14 @@ import { appName } from "@/constants";
 
 const Navbar = () => {
   return (
-    <header className="relative z-10 border-b px-4">
-      <nav className="max-w-[1440px] mx-auto flex justify-between items-center sm:px-16 px-6 py-2">
+    <header className="relative z-10 border-b border-gray-100 px-4">
+      <nav className="max-w-[1440px] mx-auto flex justify-between items-center sm:px-16 px-6">
         <Link href="/" className="flex justify-center items-center">
           <Image
-            src="/logo.svg"
+            src="/transparentlogo.png"
             alt="Car Hub Logo"
-            width={118}
-            height={18}
+            width={100}
+            height={50}
             className="object-contain"
           />
         </Link>

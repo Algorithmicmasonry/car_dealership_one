@@ -1,4 +1,6 @@
-export const appName="carhub"
+import { ContentDataResponse } from "@/server actions/content.actions";
+
+export const appName="DurieAutos"
 
 export const sellingPoints = ["Certified quality and inspection guarantee", "Transparent Pricing with No Hidden Fees", "24/7 Customer Support Team Available", "Easy-to-use website to compare vehicles"]
 
@@ -169,24 +171,24 @@ export const fuels = [
   ];
 
 export const footerLinks = [
-  {
-    title: "About",
-    links: [
-      { title: "How it works", url: "/" },
-      { title: "Featured", url: "/" },
-      { title: "Partnership", url: "/" },
-      { title: "Bussiness Relation", url: "/" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { title: "Events", url: "/" },
-      { title: "Blog", url: "/" },
-      { title: "Podcast", url: "/" },
-      { title: "Invite a friend", url: "/" },
-    ],
-  },
+  // {
+  //   title: "About",
+  //   links: [
+  //     { title: "How it works", url: "/" },
+  //     { title: "Featured", url: "/" },
+  //     { title: "Partnership", url: "/" },
+  //     { title: "Bussiness Relation", url: "/" },
+  //   ],
+  // },
+  // {
+  //   title: "Company",
+  //   links: [
+  //     { title: "Events", url: "/" },
+  //     { title: "Blog", usrl: "/" },
+  //     { title: "Podcast", url: "/" },
+  //     { title: "Invite a friend", url: "/" },
+  //   ],
+  // },
   {
     title: "Socials",
     links: [
@@ -272,3 +274,39 @@ export const cars = [
     
   }
 ]
+
+export const defaultContent: ContentDataResponse = {
+    _id: "",
+    hero: "Find Your Dream Car Today",
+    subtitle: "Browse our wide selection of reliable vehicles",
+    heroImage: "/hero.png",
+    brands: [],
+    whoAreWe: {
+      heading: "Who Are We?",
+      subtitle: "Your trusted automotive partner",
+      listOfBenefits: ["Quality vehicles", "Great prices", "Excellent service"],
+    },
+    whyChooseUs: [],
+    prosAndCons: {
+      pros: {
+        heading: "What You Get With Us",
+        text: "Quality service and reliable vehicles",
+      },
+      cons: {
+        heading: "Without Our Help",
+        text: "Uncertainty and potential issues",
+      },
+    },
+    getInTouch: {
+      salesCard: {
+        heading: "Contact Sales",
+        subheading: "Get in touch with our sales team",
+        buttonText: "Contact Us",
+      },
+      teamCard: {
+        heading: "Contact Team",
+        subheading: "Reach out to our support team",
+        buttonText: "Message Us",
+      },
+    },
+  }

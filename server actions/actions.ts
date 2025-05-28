@@ -3,7 +3,7 @@
 
 import { FilterQuery } from 'mongoose';
 import { connectToDB } from '@/db/connectToDB';
-import Car, { CarLean } from '@/db/schema';
+import { Car, CarLean } from '@/db/schema';
 import { CarProps } from '@/types';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
@@ -83,6 +83,7 @@ export async function fetchCars(filters: {
 
 
 
+
 export async function fetchCarById(_id: string): Promise<CarProps | null> {
   try {
     await connectToDB();
@@ -148,22 +149,23 @@ export async function fetchAllCars(): Promise<CarProps[]> {
 
  const carSchema = z.object({
   name: z.string(),
-  overview: z.string(),
+  overview: z.string().optional(),
   images: z.array(z.string()),
-  body: z.string(),
-  mileage: z.number(),
+  body: z.string().optional(),
+  mileage: z.number().optional(),
   fuelType: z.string(),
   manufacturer: z.string(),
   transmission: z.string(),
   year: z.number(),
   driveType: z.string(),
   condition: z.string(),
-  engineSize: z.string(),
+  engineSize: z.number().nullable().optional(), // Changed from string to number
   doors: z.number(),
   price: z.number(),
-  cylinders: z.number(),
+  cylinders: z.number().nullable().optional(),
   color: z.string()
 });
+
 
 async function uploadToCloudinary(file: File): Promise<string> {
   const formData = new FormData();
@@ -230,4 +232,150 @@ export async function createCar(formData: FormData): Promise<void> {
     console.log( { success: false, message: 'Failed to create car' })
   }
 }
+
+
+interface RecentCar {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  status: string;
+}
+
+export async function fetchDashboardData(): Promise<{
+  totalCars: number;
+  totalValue: number;
+  recentCars: RecentCar[];
+}> {
+  try {
+    await connectToDB();
+
+    // Get total count of cars
+    const totalCars = await Car.countDocuments();
+
+    // Calculate total inventory value using aggregation
+    const inventoryResult = await Car.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalValue: { $sum: "$price" }
+        }
+      }
+    ]);
+
+    const totalValue = inventoryResult.length > 0 ? inventoryResult[0].totalValue : 0;
+
+    // Fetch recent cars (last 5 cars, sorted by creation date)
+    const recentCarsData = await Car.find({})
+      .sort({ _id: -1 }) // Sort by _id descending (most recent first)
+      .limit(5)
+      .lean<CarLean[]>();
+
+    // Transform recent cars to match the required format
+    const recentCars: RecentCar[] = recentCarsData.map(car => {
+      // Extract make and model from name or manufacturer
+      // Assuming name format is "Make Model" or using manufacturer as make
+      const nameParts = car.name.split(' ');
+      const make = car.manufacturer || nameParts[0] || 'Unknown';
+      const model = nameParts.length > 1 ? nameParts.slice(1).join(' ') : car.name;
+
+      return {
+        id: car._id.toString(),
+        make,
+        model,
+        year: car.year,
+        price: car.price,
+        status: car.condition.toLowerCase() === 'new' ? 'available' : 
+                car.condition.toLowerCase() === 'used' ? 'available' : 
+                car.condition.toLowerCase()
+      };
+    });
+
+    return {
+      totalCars,
+      totalValue,
+      recentCars
+    };
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+    // Return default values instead of null
+    return {
+      totalCars: 0,
+      totalValue: 0,
+      recentCars: []
+    };
+  }
+}
+
+
+
+export async function updateCar(carId: string, carData: Partial<CarProps>): Promise<{ success: boolean; message: string }> {
+  try {
+    console.log("The update function is being called");
+    console.log("Car data received:", carData);
+    
+    await connectToDB();
+
+    // Validate the car data using partial schema
+    const updateData = carSchema.partial().safeParse(carData);
+    
+    if (!updateData.success) {
+      console.log("Validation errors:", updateData.error.flatten());
+      return { 
+        success: false, 
+        message: 'Validation failed: ' + JSON.stringify(updateData.error.flatten().fieldErrors)
+      };
+    }
+
+    console.log("Validated data:", updateData.data);
+
+    // Update the car in the database
+    const updatedCar = await Car.findByIdAndUpdate(
+      carId,
+      updateData.data,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCar) {
+      return { success: false, message: 'Car not found' };
+    }
+
+    console.log("Car updated successfully:", updatedCar);
+
+    // Revalidate the paths that might show this car data
+    revalidatePath('/');
+    revalidatePath('/admin');
+    revalidatePath('/admin/inventory');
+
+    return { success: true, message: 'Car updated successfully' };
+  } catch (error: any) {
+    console.error('Error updating car:', error.message);
+    return { success: false, message: 'Failed to update car: ' + error.message };
+  }
+}
+// Optional: Add a delete function as well
+export async function deleteCar(carId: string): Promise<{ success: boolean; message: string }> {
+  try {
+    await connectToDB();
+
+    const deletedCar = await Car.findByIdAndDelete(carId);
+
+    if (!deletedCar) {
+      return { success: false, message: 'Car not found' };
+    }
+
+    revalidatePath('/');
+    revalidatePath('/inventory');
+
+    return { success: true, message: 'Car deleted successfully' };
+  } catch (error: any) {
+    console.error('Error deleting car:', error.message);
+    return { success: false, message: 'Failed to delete car' };
+  }
+}
+
+
+
+
 

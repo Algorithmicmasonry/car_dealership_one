@@ -20,8 +20,6 @@ import { formatCurrency } from "@/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { manufacturers } from "@/constants";
-import { vendored } from "next/dist/server/future/route-modules/pages/module.compiled";
-// Assuming you use a toast library like sonner
 
 // Define the car interface based on the schema
 interface CarFormData {
@@ -90,18 +88,18 @@ export default function CarForm() {
     name: "",
     overview: "",
     images: [],
-    body: "",
+    body: "sedan", // Prefilled with sedan
     mileage: "",
-    fuelType: "",
-    manufacturer: "",
-    transmission: "",
+    fuelType: "petrol", // Prefilled with petrol
+    manufacturer: manufacturers[0] || "", // Prefilled with first manufacturer
+    transmission: "automatic", // Prefilled with automatic
     year: String(new Date().getFullYear()),
-    driveType: "",
-    condition: "",
+    driveType: "fwd(Front-wheel-drive)", // Prefilled with FWD
+    condition: "foreignUsed", // Prefilled with Foreign Used
     engineSize: "",
-    doors: "",
+    doors: "4", // Prefilled with 4 doors
     price: "",
-    cylinders: "",
+    cylinders: "4", // Prefilled with 4 cylinders
     color: "",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);

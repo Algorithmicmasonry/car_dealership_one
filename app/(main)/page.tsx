@@ -15,10 +15,10 @@ import {
 } from "@/components/landing-page";
 import { fuels, yearsOfProduction } from "@/constants";
 import { fetchCars } from "@/server actions/actions";
-import { ArrowUp } from "lucide-react";
+import { fetchContentData, type ContentDataResponse } from "@/server actions/content.actions"
 
-// Tell Next.js this is a dynamic page
-export const dynamic = "force-dynamic";
+// ISR Configuration - Revalidate every hour
+export const revalidate = 3600
 
 export default async function Home({
   searchParams,
@@ -30,13 +30,55 @@ export default async function Home({
     year?: string;
   };
 }) {
-  const allCars = await fetchCars(searchParams);
-  const isDataEmpty = !Array.isArray(allCars) || allCars.length < 1 || !allCars;
+  // Fetch both car data and CMS content
+  const [allCars, contentData] = await Promise.all([fetchCars(searchParams), fetchContentData()])
+
+  const isDataEmpty = !Array.isArray(allCars) || allCars.length < 1 || !allCars
+
+  // Fallback content if CMS data is not available
+  const defaultContent: ContentDataResponse = {
+    _id: "",
+    hero: "Find Your Dream Car Today",
+    subtitle: "Browse our wide selection of reliable vehicles",
+    heroImage: "/hero.png",
+    brands: [],
+    whoAreWe: {
+      heading: "Who Are We?",
+      subtitle: "Your trusted automotive partner",
+      listOfBenefits: ["Quality vehicles", "Great prices", "Excellent service"],
+    },
+    whyChooseUs: [],
+    prosAndCons: {
+      pros: {
+        heading: "What You Get With Us",
+        text: "Quality service and reliable vehicles",
+      },
+      cons: {
+        heading: "Without Our Help",
+        text: "Uncertainty and potential issues",
+      },
+    },
+    getInTouch: {
+      salesCard: {
+        heading: "Contact Sales",
+        subheading: "Get in touch with our sales team",
+        buttonText: "Contact Us",
+      },
+      teamCard: {
+        heading: "Contact Team",
+        subheading: "Reach out to our support team",
+        buttonText: "Message Us",
+      },
+    },
+  }
+
+  const content = contentData || defaultContent
+  console.log(content)
 
   return (
     <main className="overflow-hidden relative">
-      <Hero />
-      <Brands />
+      <Hero hero={content.hero} subtitle={content.subtitle} heroImage={content.heroImage} />
+      <Brands brands={content.brands}  />
       {/* catalogue section */}
       <div className="mt-12 padding-x padding-y max-width" id="discover">
         <div className="home__text-container">
@@ -75,9 +117,9 @@ export default async function Home({
         )}
       </div>
 
-      <WhoAreWe />
-      <WhyChooseUs />
-      <ProsAndCons />
+     <WhoAreWe whoAreWe={content.whoAreWe} />
+       <WhyChooseUs whyChooseUs={content.whyChooseUs} />
+    <ProsAndCons prosAndCons={content.prosAndCons} />
      
       {/* fixed elements */}
       <ScrollToTopButton/>
