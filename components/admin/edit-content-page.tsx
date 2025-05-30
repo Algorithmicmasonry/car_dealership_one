@@ -167,44 +167,60 @@ export default function EditContentPage() {
     return JSON.parse(JSON.stringify(mongooseDoc))
   }
 
-  const saveChanges = async () => {
-    setIsSaving(true)
-    try {
-      // Filter out inactive brands before saving
-      const activeBrands = contentData.brands.filter((brand) => brand.isActive)
-      const inactiveBrandsCount = contentData.brands.length - activeBrands.length
+ const saveChanges = async () => {
+  setIsSaving(true)
+  try {
+    // Filter out inactive brands before saving
+    const activeBrands = contentData.brands.filter((brand) => brand.isActive)
+    const inactiveBrandsCount = contentData.brands.length - activeBrands.length
 
-      // Show warning if there are inactive brands that will be removed
-      if (inactiveBrandsCount > 0) {
-        toast({
-          title: "Saving Active Brands Only",
-          description: `${inactiveBrandsCount} inactive brand(s) will be removed from the database.`,
-        })
-      }
+    // Show warning if there are inactive brands that will be removed
+    if (inactiveBrandsCount > 0) {
+      toast({
+        title: "Saving Active Brands Only",
+        description: `${inactiveBrandsCount} inactive brand(s) will be removed from the database.`,
+      })
+    }
 
-      // First, fetch the latest version to avoid conflicts
-      const latestResponse = await fetch("/api/cms")
-      if (latestResponse.ok) {
-        const latestData = await latestResponse.json()
+    // First, fetch the latest version to avoid conflicts
+    const latestResponse = await fetch("/api/cms")
+    if (!latestResponse.ok) {
+      throw new Error('Failed to fetch latest content')
+    }
+    
+    const latestData = await latestResponse.json()
 
-        // Prepare data with only active brands
-        const dataToSave = {
-          ...contentData,
-          brands: activeBrands, // Only save active brands
-          _id: latestData._id,
-          __v: latestData.__v,
-        }
+    // Prepare data with only active brands
+    const dataToSave = {
+      ...contentData,
+      brands: activeBrands, // Only save active brands
+      _id: latestData._id,
+      __v: latestData.__v,
+    }
 
-        const response = await fetch("/api/cms", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dataToSave),
-        })
+    console.log('Sending PUT request with data:', dataToSave) // Debug log
 
-        if (!response.ok) {
+    const response = await fetch("/api/cms", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(dataToSave),
+    })
+
+    console.log('Response status:', response.status) // Debug log
+    console.log('Response headers:', Object.fromEntries(response.headers.entries())) // Debug log
+
+    if (!response.ok) {
+      // Try to get error message, but handle cases where response isn't JSON
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+      
+      try {
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
           const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+          
           if (errorData.code === "VERSION_CONFLICT") {
             toast({
               title: "Conflict Detected",
@@ -213,38 +229,56 @@ export default function EditContentPage() {
             })
             return
           }
-          throw new Error(errorData.error || "Failed to save changes")
+        } else {
+          // Response is not JSON, get as text
+          const errorText = await response.text()
+          if (errorText) {
+            errorMessage = errorText
+          }
         }
-
-        const result = await response.json()
-
-        toast({
-          title: "Success!",
-          description: `Changes saved successfully. ${activeBrands.length} active brand(s) saved to database.`,
-        })
-
-        // Don't update local state with server response to keep inactive brands visible
-        // Only update the _id and __v for version tracking
-        if (result.data) {
-          setContentData((prev) => ({
-            ...prev,
-            _id: result.data._id,
-            __v: result.data.__v,
-            updatedAt: result.data.updatedAt,
-          }))
-        }
+      } catch (parseError) {
+        console.error('Error parsing error response:', parseError)
+        // Use the default error message
       }
-    } catch (error) {
-      console.error("Error saving content:", error)
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save changes. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSaving(false)
+      
+      throw new Error(errorMessage)
     }
+
+    // Only parse JSON if we expect it
+    const contentType = response.headers.get('content-type')
+    let result = null
+    
+    if (contentType && contentType.includes('application/json')) {
+      result = await response.json()
+    }
+
+    toast({
+      title: "Success!",
+      description: `Changes saved successfully. ${activeBrands.length} active brand(s) saved to database.`,
+    })
+
+    // Don't update local state with server response to keep inactive brands visible
+    // Only update the _id and __v for version tracking
+    if (result && result.data) {
+      setContentData((prev) => ({
+        ...prev,
+        _id: result.data._id,
+        __v: result.data.__v,
+        updatedAt: result.data.updatedAt,
+      }))
+    }
+    
+  } catch (error) {
+    console.error("Error saving content:", error)
+    toast({
+      title: "Error",
+      description: error instanceof Error ? error.message : "Failed to save changes. Please try again.",
+      variant: "destructive",
+    })
+  } finally {
+    setIsSaving(false)
   }
+}
 
   // Example of how to load data from API
   const loadContentData = async () => {

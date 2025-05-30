@@ -1,8 +1,9 @@
-// app/api/cms/site-content/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDB } from "@/db/connectToDB";
 import { SiteContent, ISiteContent } from "@/db/schema"
 import { brands } from '@/constants';
+import { revalidatePath } from 'next/cache';
 
 export async function GET() {
   try {
@@ -111,6 +112,10 @@ export async function PUT(request: NextRequest) {
           overwrite: false     // Don't overwrite entire document
         }
       );
+
+      revalidatePath('/')
+    revalidatePath('/admin')
+    revalidatePath('/admin/edit-content')
       return NextResponse.json({
         message: 'Site content updated successfully',
         data: result
@@ -119,11 +124,20 @@ export async function PUT(request: NextRequest) {
       // Create new content
       siteContent = new SiteContent(updatedContent);
       await siteContent.save();
+
+      revalidatePath('/')
+    revalidatePath('/admin')
+    revalidatePath('/admin/edit-content')
       return NextResponse.json({
         message: 'Site content created successfully',
         data: siteContent
       });
+
+
     }
+
+    
+
   } catch (error) {
     console.error('Error updating site content:', error);
     return NextResponse.json(
