@@ -214,7 +214,7 @@ export default function CarForm() {
 
       // Submit to your backend API
       toast({ title: "Creating Car listing" });
-      const response = await fetch("/api/cars", {
+      const response = await fetch("/cars", {
         method: "POST",
         body: submitFormData,
       });
