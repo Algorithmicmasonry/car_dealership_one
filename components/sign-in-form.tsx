@@ -22,7 +22,7 @@ export function SignInForm() {
       const success = await authenticate(email, password)
 
       if (success) {
-        router.push("/upload")
+        router.push("/admin/upload")
       } else {
         setError("Invalid email or password")
       }
