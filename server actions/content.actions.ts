@@ -1,28 +1,33 @@
 "use server"
-
 import { connectToDB } from "@/db/connectToDB"
-import { SiteContent, type SiteContentLean } from "@/db/schema" // Remove ISiteContent import
+import { brands } from "@/constants"
 import { revalidatePath } from "next/cache"
+import { SiteContent, type SiteContentLean } from "@/db/schema";
 
-// Create a plain interface for the return type (without Mongoose Document methods)
-export interface ContentDataResponse {
-  _id: string
+
+
+// Types for better type safety
+interface SiteContentData {
+  _id?: string
   hero: string
   subtitle: string
   heroImage: string
   brands: Array<{
     name: string
     image: string
+    isActive?: boolean
+    _id?: string
   }>
   whoAreWe: {
     heading: string
     subtitle: string
+    description?: string
     listOfBenefits: string[]
   }
   whyChooseUs: Array<{
     heading: string
-    description: string
     text: string
+    _id?: string
   }>
   prosAndCons: {
     pros: {
@@ -46,20 +51,315 @@ export interface ContentDataResponse {
       buttonText: string
     }
   }
-  createdAt?: Date
-  updatedAt?: Date
+  createdAt?: string
+  updatedAt?: string
+  __v?: number
 }
 
-export async function fetchContentData(): Promise<ContentDataResponse | null> {
+export interface ActionResult {
+  success: boolean
+  message: string
+  data?: any
+  error?: string
+}
+
+
+// Helper function to convert Mongoose document to plain object
+const convertToPlainObject = (mongooseDoc: any): SiteContentData => {
+  if (mongooseDoc.toObject) {
+    return mongooseDoc.toObject()
+  }
+  return JSON.parse(JSON.stringify(mongooseDoc))
+}
+
+// Get site content - equivalent to GET route
+export async function getSiteContent(): Promise<ActionResult> {
   try {
     await connectToDB()
 
-    // Get the latest content (assuming you have one main content document)
-    const content = await SiteContent.findOne().sort({ updatedAt: -1 }).lean<SiteContentLean>()
+    let siteContent = await SiteContent.findOne().lean()
 
-    if (!content) return null
+    // If no content exists, create default content
+    if (!siteContent) {
+      const defaultContent = {
+        hero: "Find Your Dream Ride Today!",
+        subtitle:
+          "Browse our wide selection of reliable new and foreign used vehicles. Great prices, financing options, and nationwide delivery available",
+        heroImage: "/hero.png",
+        brands: brands,
+        whoAreWe: {
+          heading: "Who Are We?",
+          subtitle: "Welcome to DurieAutos.com - Your Trusted Source For High Quality Vehicle",
+          description:
+            "Looking for a place to purchase high quality cars? You've come to the right place! carhub.com is the best place to find premium and high quality cars",
+          listOfBenefits: [
+            "Certified quality and inspection guarantee",
+            "Transparent Pricing with No Hidden Fees",
+            "24/7 Customer Support Team Available",
+            "Easy-to-use website to compare vehicles",
+          ],
+        },
+        whyChooseUs: [
+          {
+            heading: "Wide Vehicle Selection",
+            text: "From affordable sedans to premium SUVs, our inventory is carefully curated to suit every budget and lifestyle..",
+          },
+          {
+            heading: "Certified Inspections",
+            text: "Every vehicle undergoes a thorough inspection by certified mechanics, giving you peace of mind before you buy.",
+          },
+          {
+            heading: "Transparent Pricing",
+            text: "No hidden fees or surprise charges—what you see is what you pay. We offer honest pricing and great value.",
+          },
+          {
+            heading: "Post-Sale Support",
+            text: "We don't disappear after the sale. Enjoy after-sales support, warranty options, and maintenance recommendations.",
+          },
+        ],
+        prosAndCons: {
+          pros: {
+            heading: "What You Get With Us",
+            text: "Shop with confidence. We offer a curated selection of verified cars, transparent pricing, and a smooth buying process. No hidden charges, no stress — just peace of mind from test drive to key handover.",
+          },
+          cons: {
+            heading: "Without Our Help",
+            text: "Endless calls, shady sellers, overpriced vehicles, and wasting time chasing unverified listings. Buying a car shouldn't feel like a gamble. Avoid regret and shop smart — choose a dealership that puts you first.",
+          },
+        },
+        getInTouch: {
+          salesCard: {
+            heading: "Speak to Someone in Sales",
+            subheading:
+              "To create a more value-added solution, it is essential to analyze the possibilities of improvement.",
+            buttonText: "Send an Email",
+          },
+          teamCard: {
+            heading: "Contact Our Team",
+            subheading:
+              "To create a more value-added solution, it is essential to analyze the possibilities of improvement.",
+            buttonText: "Message us on WhatsApp",
+          },
+        },
+      }
 
-    // Return a plain object that matches our interface
+      const newSiteContent = new SiteContent(defaultContent)
+      siteContent = await newSiteContent.save()
+    }
+
+    return {
+      success: true,
+      message: "Site content fetched successfully",
+      data: convertToPlainObject(siteContent),
+    }
+  } catch (error) {
+    console.error("Error fetching site content:", error)
+    return {
+      success: false,
+      message: "Failed to fetch site content",
+      error: error instanceof Error ? error.message : "Unknown error",
+    }
+  }
+}
+
+// Update site content - equivalent to PUT route
+export async function updateSiteContent(updatedContent: Partial<SiteContentData>): Promise<ActionResult> {
+  try {
+    await connectToDB()
+
+    // Validation
+    if (!updatedContent.hero || !updatedContent.subtitle) {
+      return {
+        success: false,
+        message: "Hero and subtitle are required",
+        error: "Validation failed",
+      }
+    }
+
+    let siteContent = await SiteContent.findOne()
+
+    if (siteContent) {
+      // Update existing content
+      const result = await SiteContent.findByIdAndUpdate(siteContent._id, updatedContent, {
+        new: true, // Return updated document
+        runValidators: true, // Run schema validation
+        overwrite: false, // Don't overwrite entire document
+      })
+
+      // Revalidate paths
+      revalidatePath("/")
+      revalidatePath("/admin")
+      revalidatePath("/admin/edit-content")
+
+      return {
+        success: true,
+        message: "Site content updated successfully",
+        data: convertToPlainObject(result),
+      }
+    } else {
+      // Create new content
+      siteContent = new SiteContent(updatedContent)
+      const savedContent = await siteContent.save()
+
+      // Revalidate paths
+      revalidatePath("/")
+      revalidatePath("/admin")
+      revalidatePath("/admin/edit-content")
+
+      return {
+        success: true,
+        message: "Site content created successfully",
+        data: convertToPlainObject(savedContent),
+      }
+    }
+  } catch (error) {
+    console.error("Error updating site content:", error)
+    return {
+      success: false,
+      message: "Failed to update site content",
+      error: error instanceof Error ? error.message : "Unknown error",
+    }
+  }
+}
+
+// Additional helper actions for specific operations
+export async function addBrandToContent(brand: { name: string; image: string }): Promise<ActionResult> {
+  try {
+    await connectToDB()
+
+    const content = await SiteContent.findOne()
+    if (!content) {
+      return {
+        success: false,
+        message: "Content not found",
+        error: "No content document exists",
+      }
+    }
+
+    content.brands.push(brand)
+    const savedContent = await content.save()
+
+    revalidatePath("/")
+    revalidatePath("/admin/edit-content")
+
+    return {
+      success: true,
+      message: "Brand added successfully",
+      data: convertToPlainObject(savedContent),
+    }
+  } catch (error) {
+    console.error("Error adding brand:", error)
+    return {
+      success: false,
+      message: "Failed to add brand",
+      error: error instanceof Error ? error.message : "Unknown error",
+    }
+  }
+}
+
+export async function removeBrandFromContent(brandIndex: number): Promise<ActionResult> {
+  try {
+    await connectToDB()
+
+    const content = await SiteContent.findOne()
+    if (!content) {
+      return {
+        success: false,
+        message: "Content not found",
+        error: "No content document exists",
+      }
+    }
+
+    if (brandIndex < 0 || brandIndex >= content.brands.length) {
+      return {
+        success: false,
+        message: "Invalid brand index",
+        error: "Brand index out of range",
+      }
+    }
+
+    content.brands.splice(brandIndex, 1)
+    const savedContent = await content.save()
+
+    revalidatePath("/")
+    revalidatePath("/admin/edit-content")
+
+    return {
+      success: true,
+      message: "Brand removed successfully",
+      data: convertToPlainObject(savedContent),
+    }
+  } catch (error) {
+    console.error("Error removing brand:", error)
+    return {
+      success: false,
+      message: "Failed to remove brand",
+      error: error instanceof Error ? error.message : "Unknown error",
+    }
+  }
+}
+
+export interface ContentDataResponse {
+  _id: string;
+  hero: string;
+  subtitle: string;
+  heroImage: string;
+
+  brands: Array<{
+    name: string;
+    image: string;
+  }>;
+
+  whoAreWe: {
+    heading: string;
+    subtitle: string;
+    listOfBenefits: string[];
+  };
+
+  whyChooseUs: Array<{
+    heading: string;
+    description: string;
+    text: string;
+  }>;
+
+  prosAndCons: {
+    pros: {
+      heading: string;
+      text: string;
+    };
+    cons: {
+      heading: string;
+      text: string;
+    };
+  };
+
+  getInTouch: {
+    salesCard: {
+      heading: string;
+      subheading: string;
+      buttonText: string;
+    };
+    teamCard: {
+      heading: string;
+      subheading: string;
+      buttonText: string;
+    };
+  };
+
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+
+
+export async function fetchContentData(): Promise<ContentDataResponse | null> {
+  try {
+    await connectToDB();
+
+    const content = await SiteContent.findOne().sort({ updatedAt: -1 }).lean<SiteContentLean>();
+
+    if (!content) return null;
+
     return {
       _id: content._id.toString(),
       hero: content.hero,
@@ -103,150 +403,9 @@ export async function fetchContentData(): Promise<ContentDataResponse | null> {
       },
       createdAt: content.createdAt,
       updatedAt: content.updatedAt,
-    }
+    };
   } catch (error) {
-    console.error("Error fetching content data:", error)
-    return null
-  }
-}
-
-export async function updateContentData(
-  contentData: Partial<ContentDataResponse>,
-): Promise<{ success: boolean; message: string }> {
-  try {
-    await connectToDB()
-
-    // Update the main content document using SiteContent model
-    const updatedContent = await SiteContent.findOneAndUpdate(
-      {}, // Find the first/main content document
-      contentData,
-      { new: true, upsert: true }, // Create if doesn't exist
-    )
-
-    if (!updatedContent) {
-      return { success: false, message: "Failed to update content" }
-    }
-
-    // Trigger ISR revalidation for homepage
-    revalidatePath("/")
-    revalidatePath("/admin")
-    revalidatePath("/admin/inventory")
-
-    return { success: true, message: "Content updated successfully" }
-  } catch (error: any) {
-    console.error("Error updating content:", error.message)
-    return { success: false, message: "Failed to update content: " + error.message }
-  }
-}
-
-export async function addBrand(brand: { name: string; image: string }): Promise<{ success: boolean; message: string }> {
-  try {
-    await connectToDB()
-
-    const content = await SiteContent.findOne()
-    if (!content) {
-      return { success: false, message: "Content not found" }
-    }
-
-    content.brands.push(brand)
-    await content.save()
-
-    revalidatePath("/")
-
-    return { success: true, message: "Brand added successfully" }
-  } catch (error: any) {
-    console.error("Error adding brand:", error.message)
-    return { success: false, message: "Failed to add brand: " + error.message }
-  }
-}
-
-export async function removeBrand(brandIndex: number): Promise<{ success: boolean; message: string }> {
-  try {
-    await connectToDB()
-
-    const content = await SiteContent.findOne()
-    if (!content) {
-      return { success: false, message: "Content not found" }
-    }
-
-    content.brands.splice(brandIndex, 1)
-    await content.save()
-
-    revalidatePath("/")
-
-    return { success: true, message: "Brand removed successfully" }
-  } catch (error: any) {
-    console.error("Error removing brand:", error.message)
-    return { success: false, message: "Failed to remove brand: " + error.message }
-  }
-}
-
-// Helper function to create initial content if none exists
-export async function createInitialContent(): Promise<{ success: boolean; message: string }> {
-  try {
-    await connectToDB()
-
-    const existingContent = await SiteContent.findOne()
-    if (existingContent) {
-      return { success: true, message: "Content already exists" }
-    }
-
-    const initialContent = new SiteContent({
-      hero: "Find Your Dream Car Today",
-      subtitle: "Browse our wide selection of reliable vehicles",
-      heroImage: "/hero.png",
-      brands: [
-        { name: "Mercedes-Benz", image: "/mercedes log.webp" },
-        { name: "Lexus", image: "/lexus logo.webp" },
-        { name: "Toyota", image: "/Toyota logo.webp" },
-        { name: "BMW", image: "/bmw logo.webp" },
-      ],
-      whoAreWe: {
-        heading: "Who Are We?",
-        subtitle: "Your trusted automotive partner",
-        listOfBenefits: ["Quality vehicles", "Great prices", "Excellent service", "Nationwide delivery"],
-      },
-      whyChooseUs: [
-        {
-          heading: "Wide Selection",
-          description: "Extensive inventory",
-          text: "Choose from hundreds of quality vehicles",
-        },
-        {
-          heading: "Quality Assured",
-          description: "Certified vehicles",
-          text: "All vehicles undergo thorough inspection",
-        },
-      ],
-      prosAndCons: {
-        pros: {
-          heading: "What You Get With Us",
-          text: "Quality service and reliable vehicles",
-        },
-        cons: {
-          heading: "Without Our Help",
-          text: "Uncertainty and potential issues",
-        },
-      },
-      getInTouch: {
-        salesCard: {
-          heading: "Contact Sales",
-          subheading: "Get in touch with our sales team",
-          buttonText: "Contact Us",
-        },
-        teamCard: {
-          heading: "Contact Team",
-          subheading: "Reach out to our support team",
-          buttonText: "Message Us",
-        },
-      },
-    })
-
-    await initialContent.save()
-
-    return { success: true, message: "Initial content created successfully" }
-  } catch (error: any) {
-    console.error("Error creating initial content:", error.message)
-    return { success: false, message: "Failed to create initial content: " + error.message }
+    console.error("Error fetching content data:", error);
+    return null;
   }
 }

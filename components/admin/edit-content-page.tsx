@@ -10,10 +10,9 @@ import { Separator } from "@/components/ui/separator"
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { getSiteContent, updateSiteContent, type ActionResult } from "@/server actions/content.actions"
 
 // Define plain object types for React state (without Mongoose methods)
-
-
 interface IBrand {
   name: string
   image: string
@@ -24,6 +23,7 @@ interface IBrand {
 interface IWhoAreWe {
   heading: string
   subtitle: string
+  description?: string
   listOfBenefits: string[]
 }
 
@@ -70,6 +70,7 @@ interface SiteContentData {
   getInTouch: IGetInTouch
   createdAt?: string
   updatedAt?: string
+  __v?: number
 }
 
 // Sample data matching the API structure
@@ -151,147 +152,21 @@ export default function EditContentPage() {
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
 
-  // Add this useEffect after the state declarations
+  // Load content data using server action
   useEffect(() => {
     loadContentData()
   }, [])
 
-  // Helper function to convert Mongoose document to plain object
-  const convertToPlainObject = (mongooseDoc: any): SiteContentData => {
-    // Method 1: Use toObject() if it's a Mongoose document
-    if (mongooseDoc.toObject) {
-      return mongooseDoc.toObject()
-    }
-
-    // Method 2: Use JSON.parse(JSON.stringify()) to strip Mongoose methods
-    return JSON.parse(JSON.stringify(mongooseDoc))
-  }
-
- const saveChanges = async () => {
-  setIsSaving(true)
-  try {
-    // Filter out inactive brands before saving
-    const activeBrands = contentData.brands.filter((brand) => brand.isActive)
-    const inactiveBrandsCount = contentData.brands.length - activeBrands.length
-
-    // Show warning if there are inactive brands that will be removed
-    if (inactiveBrandsCount > 0) {
-      toast({
-        title: "Saving Active Brands Only",
-        description: `${inactiveBrandsCount} inactive brand(s) will be removed from the database.`,
-      })
-    }
-
-    // First, fetch the latest version to avoid conflicts
-    const latestResponse = await fetch("/api/cms")
-    if (!latestResponse.ok) {
-      throw new Error('Failed to fetch latest content')
-    }
-    
-    const latestData = await latestResponse.json()
-
-    // Prepare data with only active brands
-    const dataToSave = {
-      ...contentData,
-      brands: activeBrands, // Only save active brands
-      _id: latestData._id,
-      __v: latestData.__v,
-    }
-
-    console.log('Sending PUT request with data:', dataToSave) // Debug log
-
-    const response = await fetch("/api/cms", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(dataToSave),
-    })
-
-    console.log('Response status:', response.status) // Debug log
-    console.log('Response headers:', Object.fromEntries(response.headers.entries())) // Debug log
-
-    if (!response.ok) {
-      // Try to get error message, but handle cases where response isn't JSON
-      let errorMessage = `HTTP ${response.status}: ${response.statusText}`
-      
-      try {
-        const contentType = response.headers.get('content-type')
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await response.json()
-          errorMessage = errorData.error || errorMessage
-          
-          if (errorData.code === "VERSION_CONFLICT") {
-            toast({
-              title: "Conflict Detected",
-              description: "The content was modified by another user. Please refresh the page and try again.",
-              variant: "destructive",
-            })
-            return
-          }
-        } else {
-          // Response is not JSON, get as text
-          const errorText = await response.text()
-          if (errorText) {
-            errorMessage = errorText
-          }
-        }
-      } catch (parseError) {
-        console.error('Error parsing error response:', parseError)
-        // Use the default error message
-      }
-      
-      throw new Error(errorMessage)
-    }
-
-    // Only parse JSON if we expect it
-    const contentType = response.headers.get('content-type')
-    let result = null
-    
-    if (contentType && contentType.includes('application/json')) {
-      result = await response.json()
-    }
-
-    toast({
-      title: "Success!",
-      description: `Changes saved successfully. ${activeBrands.length} active brand(s) saved to database.`,
-    })
-
-    // Don't update local state with server response to keep inactive brands visible
-    // Only update the _id and __v for version tracking
-    if (result && result.data) {
-      setContentData((prev) => ({
-        ...prev,
-        _id: result.data._id,
-        __v: result.data.__v,
-        updatedAt: result.data.updatedAt,
-      }))
-    }
-    
-  } catch (error) {
-    console.error("Error saving content:", error)
-    toast({
-      title: "Error",
-      description: error instanceof Error ? error.message : "Failed to save changes. Please try again.",
-      variant: "destructive",
-    })
-  } finally {
-    setIsSaving(false)
-  }
-}
-
-  // Example of how to load data from API
   const loadContentData = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/cms")
+      const result: ActionResult = await getSiteContent()
 
-      if (!response.ok) {
-        throw new Error("Failed to load content")
+      if (!result.success) {
+        throw new Error(result.error || result.message)
       }
 
-      const mongooseData = await response.json()
-      const plainData = convertToPlainObject(mongooseData)
+      const apiData = result.data
 
       // Create a map of existing brands for quick lookup
       const existingBrandsMap = new Map()
@@ -300,8 +175,8 @@ export default function EditContentPage() {
       })
 
       // Update active status for brands from API
-      if (plainData.brands && Array.isArray(plainData.brands)) {
-        plainData.brands.forEach((apiBrand) => {
+      if (apiData.brands && Array.isArray(apiData.brands)) {
+        apiData.brands.forEach((apiBrand: any) => {
           if (existingBrandsMap.has(apiBrand.name)) {
             // Update existing brand to active
             existingBrandsMap.set(apiBrand.name, {
@@ -321,18 +196,73 @@ export default function EditContentPage() {
 
       // Update state with merged data
       setContentData({
-        ...plainData,
+        ...apiData,
         brands: mergedBrands,
       })
     } catch (error) {
       console.error("Error loading content:", error)
       toast({
         title: "Error",
-        description: "Failed to load content. Please refresh the page.",
+        description: error instanceof Error ? error.message : "Failed to load content. Please refresh the page.",
         variant: "destructive",
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const saveChanges = async () => {
+    setIsSaving(true)
+    try {
+      // Filter out inactive brands before saving
+      const activeBrands = contentData.brands.filter((brand) => brand.isActive)
+      const inactiveBrandsCount = contentData.brands.length - activeBrands.length
+
+      // Show warning if there are inactive brands that will be removed
+      if (inactiveBrandsCount > 0) {
+        toast({
+          title: "Saving Active Brands Only",
+          description: `${inactiveBrandsCount} inactive brand(s) will be removed from the database.`,
+        })
+      }
+
+      // Prepare data with only active brands
+      const dataToSave = {
+        ...contentData,
+        brands: activeBrands, // Only save active brands
+      }
+
+      console.log("Saving content with server action:", dataToSave) // Debug log
+
+      const result: ActionResult = await updateSiteContent(dataToSave)
+
+      if (!result.success) {
+        throw new Error(result.error || result.message)
+      }
+
+      toast({
+        title: "Success!",
+        description: `Changes saved successfully. ${activeBrands.length} active brand(s) saved to database.`,
+      })
+
+      // Update local state with server response data for version tracking
+      if (result.data) {
+        setContentData((prev) => ({
+          ...prev,
+          _id: result.data._id,
+          __v: result.data.__v,
+          updatedAt: result.data.updatedAt,
+        }))
+      }
+    } catch (error) {
+      console.error("Error saving content:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save changes. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -418,6 +348,19 @@ export default function EditContentPage() {
   // Get counts for display
   const activeBrandsCount = contentData.brands.filter((brand) => brand.isActive).length
   const inactiveBrandsCount = contentData.brands.length - activeBrandsCount
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 md:gap-6 lg:gap-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p className="text-muted-foreground">Loading content...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 md:gap-6 lg:gap-8">
