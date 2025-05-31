@@ -373,7 +373,7 @@ export default function EditContentPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/">
+          <Link href="/" target="_blank">
             <Button variant="outline" size="sm" className="text-xs sm:text-sm">
               <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               Preview
